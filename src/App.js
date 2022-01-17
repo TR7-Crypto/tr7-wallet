@@ -7,7 +7,7 @@ function App() {
   const createWalletHandle = () => {
     console.log("create wallet pressed");
   };
-  const restoreWalletHandle = () => {
+  const importWalletHandle = () => {
     console.log("restore wallet pressed");
   };
   const backupWalletHandle = () => {
@@ -18,19 +18,22 @@ function App() {
     <div className="App">
       <Router>
         <div className="App-header">
-          <p>TR7 Wallet!</p>
-          <img src={wallet} className="App-logo" alt="wallet" />
-          <span>
-            <Button className="" onClick={createWalletHandle}>
-              <Link to="/creat-wallet">Create Wallet</Link>
-            </Button>
-            <Button onClick={restoreWalletHandle}>Restore Wallet</Button>
-          </span>
-          <Button onClick={backupWalletHandle}>Backup Wallet</Button>
-          <span>
-            <Button onClick={backupWalletHandle}>Send</Button>
-            <Button onClick={backupWalletHandle}>Receive</Button>
-          </span>
+          <p>Welcome to TR7 Wallet!</p>
+          <p>
+            <img src={wallet} width={200} className="App-logo" alt="wallet" />
+          </p>
+          <p>
+            <span>
+              <Link to="/creat-wallet">
+                <Button className="" onClick={createWalletHandle}>
+                  Create Wallet
+                </Button>
+              </Link>
+              <Link to="/import-wallet">
+                <Button onClick={importWalletHandle}>Import Wallet</Button>
+              </Link>
+            </span>
+          </p>
         </div>
       </Router>
     </div>
