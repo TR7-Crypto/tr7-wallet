@@ -16,7 +16,7 @@ const HomePage = ({ loginStatus }) => {
 
 function App() {
   const { state, dispatch } = useContext(store);
-  if (state.wallet !== null) {
+  if (state && state.wallet !== null) {
     // console.log("wallet", state.wallet.mnemonic.phrase);
   }
 
@@ -24,7 +24,7 @@ function App() {
     <div className="App">
       <Router>
         <div className="App-header">
-          {state.loginStatus ? <Dashboard /> : <Login />}
+          {state && state.loginStatus ? <Dashboard /> : <Login />}
         </div>
         {/* <Routes>
           <Route exact path="/" element={<HomePage loginStatus={state.loginStatus} />} />
