@@ -19,8 +19,8 @@ const NavbarMenu = () => {
             <img
               alt=""
               src={walletIcon}
-              width="25"
-              height="25"
+              width="24"
+              height="24"
               className="d-inline-block align-top"
             />{" "}
             TR7 Wallet
