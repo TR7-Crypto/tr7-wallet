@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/tr7-wallet/static/css/main.93d7aa02.css",
-    "main.js": "/tr7-wallet/static/js/main.40935aea.js",
+    "main.js": "/tr7-wallet/static/js/main.c058cccf.js",
     "static/js/787.8fe7dbfc.chunk.js": "/tr7-wallet/static/js/787.8fe7dbfc.chunk.js",
     "static/media/wallet.svg": "/tr7-wallet/static/media/wallet.e4ac060fbf3fafad0027b67926f33304.svg",
     "index.html": "/tr7-wallet/index.html",
     "main.93d7aa02.css.map": "/tr7-wallet/static/css/main.93d7aa02.css.map",
-    "main.40935aea.js.map": "/tr7-wallet/static/js/main.40935aea.js.map",
+    "main.c058cccf.js.map": "/tr7-wallet/static/js/main.c058cccf.js.map",
     "787.8fe7dbfc.chunk.js.map": "/tr7-wallet/static/js/787.8fe7dbfc.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.93d7aa02.css",
-    "static/js/main.40935aea.js"
+    "static/js/main.c058cccf.js"
   ]
 }
