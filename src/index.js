@@ -5,10 +5,25 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 // Importing the Bootstrap CSS
 import "bootstrap/dist/css/bootstrap.min.css";
+import StateProvider from "./provider";
+
+var ethers = require("ethers");
+var url = "https://mainnet.infura.io/v3/ed36ba09872245c4913d425cb97d210c";
+var customHttpProvider = new ethers.providers.JsonRpcProvider(url);
+const mnemonic =
+  "giggle video holiday apart praise mail broom logic accuse rough ill uncover";
+// const wallet = ethers.Wallet.fromMnemonic(mnemonic);
+const wallet = ethers.Wallet.createRandom();
+// console.log("right after create");
+// console.log("address:", wallet.address);
+// console.log("mnemonic:", wallet.mnemonic.phrase);
+// console.log("privateKey:", wallet.privateKey);
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <StateProvider>
+      <App />
+    </StateProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );

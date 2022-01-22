@@ -1,45 +1,35 @@
-import wallet from "./wallet.svg";
+import React, { useContext } from "react";
+
 import "./App.css";
-import Button from "react-bootstrap/Button";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-import CreateWallet from "./views/CreateWallet";
-import ImportWallet from "./views/ImportWallet";
+import Login from "./views/Login";
+import Dashboard from "./views/Dashboard";
 
-const Home = () => {
+import { store } from "./provider";
+
+const HomePage = ({ loginStatus }) => {
   return (
-    <div>
-      <div className="text-primary my-5">Welcome to TR7 Wallet!</div>
-      <div className="mb-4">
-        <img src={wallet} width={200} className="App-logo" alt="wallet" />
-      </div>
-      <p>
-        <span>
-          <Link to="/creat-wallet" className="m-2">
-            <Button className="">Create Wallet</Button>
-          </Link>
-          <Link to="/import-wallet" className="m-2">
-            <Button>Import Wallet</Button>
-          </Link>
-        </span>
-      </p>
-    </div>
+    <div className="App-header">{loginStatus ? <Dashboard /> : <Login />}</div>
   );
 };
 
 function App() {
-  // TODO: check wallet login
+  const { state, dispatch } = useContext(store);
+  if (state.wallet !== null) {
+    // console.log("wallet", state.wallet.mnemonic.phrase);
+  }
 
   return (
     <div className="App">
       <Router>
         <div className="App-header">
-          <Routes>
-            <Route exact path="/" element={<Home />} />
-            <Route path="/creat-wallet" element={<CreateWallet />} />
-            <Route path="/import-wallet" element={<ImportWallet />} />
-          </Routes>
+          {state.loginStatus ? <Dashboard /> : <Login />}
         </div>
+        {/* <Routes>
+          <Route exact path="/" element={<HomePage loginStatus={state.loginStatus} />} />
+          <Route path="/transfer" element={<Transfer />} />
+        </Routes> */}
       </Router>
     </div>
   );
