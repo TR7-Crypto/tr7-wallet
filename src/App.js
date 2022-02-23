@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
@@ -6,28 +6,28 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Login from "./views/Login";
 import Dashboard from "./views/Dashboard";
 
-import { store } from "./provider";
+import { StorageContext } from "./provider";
 
-const HomePage = ({ loginStatus }) => {
+const HomePage = ({ lockupStatus }) => {
   return (
-    <div className="App-header">{loginStatus ? <Dashboard /> : <Login />}</div>
+    <div className="App-header">{lockupStatus ? <Dashboard /> : <Login />}</div>
   );
 };
 
 function App() {
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(StorageContext);
   if (state && state.wallet !== null) {
-    // console.log("wallet", state.wallet.mnemonic.phrase);
+    console.log("lockupStatus", state.lockupStatus);
   }
 
   return (
     <div className="App">
       <Router>
         <div className="App-header">
-          {state && state.loginStatus ? <Dashboard /> : <Login />}
+          {state && state.lockupStatus ? <Dashboard /> : <Login />}
         </div>
         {/* <Routes>
-          <Route exact path="/" element={<HomePage loginStatus={state.loginStatus} />} />
+          <Route exact path="/" element={<HomePage lockupStatus={state.lockupStatus} />} />
           <Route path="/transfer" element={<Transfer />} />
         </Routes> */}
       </Router>

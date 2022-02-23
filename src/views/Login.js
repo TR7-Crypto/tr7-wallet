@@ -3,7 +3,8 @@ import { Modal, Button, Form, Container } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import walletIcon from "./../wallet.svg";
 import { ethers } from "ethers";
-import { store } from "../provider";
+import { StorageContext } from "../provider";
+import { ACTION_SAVE_NEW_WALLET, ACTION_IMPORT_WALLET } from "../provider";
 
 const CreateWallet = ({ wallet, closeHandler, completeHandler }) => {
   const mnemonic = wallet.mnemonic.phrase;
@@ -101,24 +102,24 @@ const ImportWallet = ({ closeHandler, completeHandler }) => {
   );
 };
 
+const MODAL_CREATE_WALLET = "CREATE_WALLET";
+const MODAL_IMPORT_WALLET = "IMPORT_WALLET";
+
 const Home = () => {
-  const [modalShow, $modalShow] = React.useState(false);
   const [modalType, $modalType] = React.useState();
   const [tempWallet, $tempWallet] = React.useState();
-  const { state, dispatch } = useContext(store);
+  const { state, dispatch } = useContext(StorageContext);
 
   function createWalletHandler() {
     $tempWallet(ethers.Wallet.createRandom());
-    $modalType("CREATE_WALLET");
-    $modalShow(true);
+    $modalType(MODAL_CREATE_WALLET);
   }
   function completeCreateHandler() {
-    dispatch({ type: "SAVE_NEW_WALLET", payload: tempWallet });
+    dispatch({ type: ACTION_SAVE_NEW_WALLET, payload: tempWallet });
   }
 
   function importWalletHandler() {
-    $modalType("IMPORT_WALLET");
-    $modalShow(true);
+    $modalType(MODAL_IMPORT_WALLET);
   }
   async function createWalletFromMnemonic(mnemonic) {
     const wallet = await ethers.Wallet.fromMnemonic(mnemonic);
@@ -126,14 +127,12 @@ const Home = () => {
   }
   async function completeImportHandler(mnemonic) {
     const wallet = await ethers.Wallet.fromMnemonic(mnemonic);
-    dispatch({ type: "IMPORT_WALLET", payload: wallet });
-    debugger;
+    dispatch({ type: ACTION_IMPORT_WALLET, payload: wallet });
   }
 
   // const wallet = ethers.Wallet.fromMnemonic(mnemonic);
   function closeHandler() {
     $modalType("");
-    $modalShow(false);
   }
 
   return (
@@ -153,6 +152,7 @@ const Home = () => {
           <Button className="m-2" onClick={importWalletHandler}>
             Import Wallet
           </Button>
+          <Button className="m-2">Unlock Wallet</Button>
         </span>
       </p>
       {/* modal */}

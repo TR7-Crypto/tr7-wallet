@@ -1,15 +1,113 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
-import { Container, Nav, NavDropdown, Form } from "react-bootstrap";
-import { store } from "../provider";
+import { Container, Form, Table, ListGroup, Modal } from "react-bootstrap";
+import { StorageContext } from "../provider";
 import walletIcon from "./../wallet.svg";
+import "./Dashboard.css";
+
+const BackupModal = ({ wallet, closeHandler, completeHandler }) => {
+  console.log("internal wallet", wallet);
+  return (
+    <Modal
+      // {...props}
+      size="xl"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      show
+      onHide={closeHandler}
+    >
+      <Modal.Header closeButton>
+        <Modal.Title
+          id="contained-modal-title-vcenter"
+          className="text-primary"
+        >
+          BACKUP WALLET
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p className="text-warning">
+          Backup your Seed Phrase and/or Private Key to restore wallet later (on
+          any other wallets/devices)
+        </p>
+        <ListGroup horizontal className="my-2 ">
+          <ListGroup.Item variant="primary">Addres</ListGroup.Item>
+          <ListGroup.Item className="list-group-item-break">
+            {wallet.address}
+          </ListGroup.Item>
+        </ListGroup>
+        <ListGroup horizontal className="my-2">
+          <ListGroup.Item variant="primary">Seed Phrase</ListGroup.Item>
+          <ListGroup.Item className="list-group-item-break">
+            {wallet.mnemonic.phrase}
+          </ListGroup.Item>
+        </ListGroup>
+        <ListGroup horizontal className="my-2">
+          <ListGroup.Item variant="primary">Private Key</ListGroup.Item>
+          <ListGroup.Item className="list-group-item-break">
+            {wallet.privateKey}
+          </ListGroup.Item>
+        </ListGroup>
+        <ListGroup horizontal className="my-2">
+          <ListGroup.Item variant="primary">Public Key</ListGroup.Item>
+          <ListGroup.Item className="list-group-item-break">
+            {wallet.publicKey}
+          </ListGroup.Item>
+        </ListGroup>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button onClick={completeHandler}>OK</Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+const ReceiveModal = ({ wallet, closeHandler, completeHandler }) => {
+  console.log("internal wallet", wallet);
+  return (
+    <Modal
+      // {...props}
+      size="xl"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      show
+      onHide={closeHandler}
+    >
+      <Modal.Header closeButton>
+        <Modal.Title
+          id="contained-modal-title-vcenter"
+          className="text-primary"
+        >
+          TOKEN RECEIVE
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p className="text-warning">
+          This is an Ethereum ERC-20 address. Be careful, just send your ERC-20
+          tokens or you will lost your assets!!!
+        </p>
+        <ListGroup horizontal className="my-2 ">
+          <ListGroup.Item variant="primary">Addres</ListGroup.Item>
+          <ListGroup.Item className="list-group-item-break">
+            {wallet.address}
+          </ListGroup.Item>
+        </ListGroup>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button onClick={completeHandler}>OK</Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
 
 // Navbar for the page
-const NavbarMenu = () => {
-  function lockWalletClickHandler() {}
-  function backupWalletClickHandler() {}
+const NavbarMenu = ({ backupHandler }) => {
+  const { state, dispatch } = useContext(StorageContext);
+
+  function lockWalletClickHandler() {
+    dispatch({ type: "LOCK_WALLET" });
+  }
 
   return (
     <>
@@ -25,33 +123,107 @@ const NavbarMenu = () => {
             />{" "}
             TR7 Wallet
           </Navbar.Brand>
-          <Navbar.Toggle />
+
           <Navbar.Collapse className="justify-content-end">
             <Form.Select aria-label="Default select example" defaultValue={"2"}>
               <option value="1">Mainnet</option>
               <option value="2">Ropsten</option>
             </Form.Select>
+            <Button
+              onClick={lockWalletClickHandler}
+              className="mx-1 bg-dark text-nowrap"
+            >
+              Lock Wallet
+            </Button>
+            <Button className="bg-dark" onClick={backupHandler}>
+              Backup
+            </Button>
           </Navbar.Collapse>
         </Container>
       </Navbar>
     </>
   );
 };
+const MODAL_BACKUP = "BACKUP_WALLET";
+const MODAL_RECEIVE = "MODAL_RECEIVE";
+
 const Dashboard = () => {
-  const { state, dispatch } = useContext(store);
+  let dollarUSLocale = Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 6,
+  });
+  const { state, dispatch } = useContext(StorageContext);
+  const [modalType, $modalType] = React.useState();
   const wallet = state.wallet;
   function sendTokenHandler() {}
-  function receiveTokenHandler() {}
+  function receiveTokenHandler() {
+    $modalType(MODAL_RECEIVE);
+  }
   function swapTokenHandler() {}
+  function backUpHandler() {
+    $modalType(MODAL_BACKUP);
+  }
+  function closeHandler() {
+    $modalType("");
+  }
+  var balanceTotal = 0;
+  state.tokenList.map((token, index) => {
+    balanceTotal += token.balance * token.priceUSDT;
+  });
 
   return (
     <div>
-      <NavbarMenu />
-      <h1 className="py-4">Main Wallet</h1>
-      <h5>Address: {wallet.address}</h5>
-      <h5>Mnemonic: {wallet.mnemonic.phrase}</h5>
-      <h5>Private: {wallet.privateKey}</h5>
-
+      <NavbarMenu backupHandler={backUpHandler} />
+      <h1 className="pt-4">Ethereum Blockchain</h1>
+      <ListGroup horizontal className="mx-2">
+        <ListGroup.Item variant="primary">Address</ListGroup.Item>
+        <ListGroup.Item className="list-group-item-break">
+          {wallet.address}
+        </ListGroup.Item>
+      </ListGroup>
+      <div className="mt-4 mx-2">
+        <ListGroup horizontal>
+          <ListGroup.Item variant="primary">Balance</ListGroup.Item>
+          <ListGroup.Item className="text-primary">
+            {dollarUSLocale.format(balanceTotal)}
+          </ListGroup.Item>
+        </ListGroup>
+        <Table
+          striped
+          bordered
+          hover
+          variant="dark"
+          size="lg"
+          responsive="xl"
+          className="mt-1"
+        >
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Token</th>
+              <th>Balance</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {state.tokenList.map((token, index) => {
+              return (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{token.symbol}</td>
+                  <td>{token.balance}</td>
+                  <td>{dollarUSLocale.format(token.priceUSDT)}</td>
+                  <td>
+                    {dollarUSLocale.format(token.balance * token.priceUSDT)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      </div>
       <span>
         <Button className="mx-2" onClick={sendTokenHandler}>
           SEND
@@ -60,9 +232,28 @@ const Dashboard = () => {
           RECEIVE
         </Button>
         <Button className="mx-2" onClick={swapTokenHandler}>
+          ADD TOKEN
+        </Button>
+        <Button className="mx-2" onClick={swapTokenHandler}>
           SWAP
         </Button>
       </span>
+      {/* modal backup */}
+      {modalType === "BACKUP_WALLET" ? (
+        <BackupModal
+          wallet={state.wallet}
+          closeHandler={closeHandler}
+          completeHandler={closeHandler}
+        />
+      ) : modalType === MODAL_RECEIVE ? (
+        <ReceiveModal
+          wallet={state.wallet}
+          closeHandler={closeHandler}
+          completeHandler={closeHandler}
+        />
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

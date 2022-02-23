@@ -8284,6 +8284,11 @@
   "resolved" "https://registry.npmjs.org/signal-exit/-/signal-exit-3.0.6.tgz"
   "version" "3.0.6"
 
+"simplestorage.js@^0.2.1":
+  "integrity" "sha1-JYpj6PcASxYDrHEEImrx/XoUtL0="
+  "resolved" "https://registry.npmjs.org/simplestorage.js/-/simplestorage.js-0.2.1.tgz"
+  "version" "0.2.1"
+
 "sisteransi@^1.0.5":
   "integrity" "sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg=="
   "resolved" "https://registry.npmjs.org/sisteransi/-/sisteransi-1.0.5.tgz"
