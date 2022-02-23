@@ -6,6 +6,7 @@ import reportWebVitals from "./reportWebVitals";
 // Importing the Bootstrap CSS
 import "bootstrap/dist/css/bootstrap.min.css";
 import StateProvider from "./provider";
+//trying to submit commit for TW-3 from branch TW-3-testJiraGithub, but without the TW-3 in commits content
 
 var ethers = require("ethers");
 var url = "https://mainnet.infura.io/v3/ed36ba09872245c4913d425cb97d210c";
