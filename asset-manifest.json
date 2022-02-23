@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/tr7-wallet/static/css/main.c7e51c33.css",
-    "main.js": "/tr7-wallet/static/js/main.23191a98.js",
+    "main.css": "/tr7-wallet/static/css/main.7bb7eda5.css",
+    "main.js": "/tr7-wallet/static/js/main.c1f6f198.js",
     "static/js/787.8fe7dbfc.chunk.js": "/tr7-wallet/static/js/787.8fe7dbfc.chunk.js",
     "static/media/wallet.svg": "/tr7-wallet/static/media/wallet.e4ac060fbf3fafad0027b67926f33304.svg",
     "index.html": "/tr7-wallet/index.html",
-    "main.c7e51c33.css.map": "/tr7-wallet/static/css/main.c7e51c33.css.map",
-    "main.23191a98.js.map": "/tr7-wallet/static/js/main.23191a98.js.map",
+    "main.7bb7eda5.css.map": "/tr7-wallet/static/css/main.7bb7eda5.css.map",
+    "main.c1f6f198.js.map": "/tr7-wallet/static/js/main.c1f6f198.js.map",
     "787.8fe7dbfc.chunk.js.map": "/tr7-wallet/static/js/787.8fe7dbfc.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c7e51c33.css",
-    "static/js/main.23191a98.js"
+    "static/css/main.7bb7eda5.css",
+    "static/js/main.c1f6f198.js"
   ]
 }
