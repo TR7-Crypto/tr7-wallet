@@ -6,8 +6,14 @@ import CSCArtifact from "../contracts/DappToken.json";
 
 const tokenList = [
   {
+    name: "Ethereum",
     symbol: "ETH",
     icon: "",
+    contractAddress: "",
+    decimals: 18,
+    description: `Ethereum is the community-run technology powering the cryptocurrency ether (ETH)
+       and thousands of decentralized applications.`,
+    url: "https://ethereum.org/",
     balance: 100000.01,
     priceUSDT: 2937.86,
   },
@@ -42,15 +48,19 @@ export const StorageContext = createContext(initialSate);
 
 const { Provider } = StorageContext;
 
-async function initWeb3Provider() {
+async function initWeb3Provider(wallet) {
   //init etherjs
   // Connect web3
   // const provider = new ethers.providers.Web3Provider(window.ethereum);
   const provider = new ethers.providers.JsonRpcProvider(
     `https://ropsten.infura.io/v3/ed36ba09872245c4913d425cb97d210c`
   );
-  const accounts = await provider.listAccounts();
-  console.log(accounts[0]);
+  // const provider = new ethers.providers.JsonRpcProvider(
+  //   `https://mainnet.infura.io/v3/ed36ba09872245c4913d425cb97d210c`
+  // );
+
+  // const accounts = await provider.listAccounts();
+  // console.log(accounts[0]);
   // dev account
   const address = "0x09858980B3B28a835D765C6cB3B1EE418070368C";
   const balance = await provider.getBalance(address);
@@ -59,6 +69,7 @@ async function initWeb3Provider() {
   );
   const signer = provider.getSigner();
   console.log(`signer ${signer._address}`);
+
   //CSC contract addr
   const contractAddress = "0xa06884A5651ceca0C013FdC4bD3C4BF47Cdf097e";
   // const contractAddress = "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2";
@@ -74,9 +85,9 @@ async function initWeb3Provider() {
   var cscBalance = await cscContract.balanceOf(address);
   console.log(`balance CSC ${cscBalance}`);
 
-  // const network = await provider.getNetwork();
-  // const chainId = network.chainId;
-  // console.log(`network: ${network}, chainId: ${chainId}`);
+  const network = await provider.getNetwork();
+  const chainId = network.chainId;
+  console.log(`network: ${network}, chainId: ${chainId}`);
   // You can also use an ENS name for the contract address
 
   // const daiAddress = "dai.tokens.ethers.eth";
@@ -130,7 +141,7 @@ function init(initialSate) {
   //
   let jStorageWallet = simpleStorage.get("jStorageWallet");
   console.log("loaded jStorageWallet", jStorageWallet);
-  initWeb3Provider();
+  initWeb3Provider(wallet);
 
   return newState;
 }

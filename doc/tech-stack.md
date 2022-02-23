@@ -3,13 +3,14 @@
 ## FRONT-END
 
 - React as UI platform
-- React Hooks for state management
+- React Hooks (Context) for state management
 - React Bootstrap for GUI components and styles
 - React Router for routing
 
 ## MIDDLE
 
-- Etherjs as Ethereum JavaScript API
+- Web3 Library (JavaScript API) for Ethereum: Etherjs
+- Contract ABI:
 
 ## BACK-END - API Providers
 
