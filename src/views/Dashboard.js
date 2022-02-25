@@ -6,6 +6,7 @@ import { Container, Form, Table, ListGroup, Modal } from "react-bootstrap";
 import { StorageContext } from "../provider";
 import walletIcon from "./../wallet.svg";
 import "./Dashboard.css";
+import { ACTION_DELETE_WALLET, ACTION_LOCK_WALLET } from "../provider";
 
 const BackupModal = ({ wallet, closeHandler, completeHandler }) => {
   console.log("internal wallet", wallet);
@@ -101,12 +102,48 @@ const ReceiveModal = ({ wallet, closeHandler, completeHandler }) => {
   );
 };
 
+const DeleteModal = ({ wallet, closeHandler, completeHandler }) => {
+  console.log("internal wallet", wallet);
+  return (
+    <Modal
+      // {...props}
+      size="xl"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      show
+      onHide={closeHandler}
+    >
+      <Modal.Header closeButton>
+        <Modal.Title id="contained-modal-title-vcenter" className="text-danger">
+          DELETE WALLET
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p className="text-warning">
+          {`BE CAUTIOUS!!!
+          This process will clear all wallet data on this device.
+          You would not be able recover your wallet without seed phrase/ private key.
+          PLEASE backup the seed phrase/ private key before doing this.`
+            .split("\n")
+            .map((i, key) => {
+              return <div key={key}>{i}</div>;
+            })}
+        </p>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button onClick={completeHandler} variant="danger">
+          DELETE
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
 // Navbar for the page
-const NavbarMenu = ({ backupHandler }) => {
+const NavbarMenu = ({ backupHandler, deleteWalletClickHandler }) => {
   const { state, dispatch } = useContext(StorageContext);
 
   function lockWalletClickHandler() {
-    dispatch({ type: "LOCK_WALLET" });
+    dispatch({ type: ACTION_LOCK_WALLET });
   }
 
   return (
@@ -138,6 +175,12 @@ const NavbarMenu = ({ backupHandler }) => {
             <Button className="bg-dark" onClick={backupHandler}>
               Backup
             </Button>
+            <Button
+              onClick={deleteWalletClickHandler}
+              className="mx-1 bg-dark text-nowrap"
+            >
+              Delete Wallet
+            </Button>
           </Navbar.Collapse>
         </Container>
       </Navbar>
@@ -146,6 +189,7 @@ const NavbarMenu = ({ backupHandler }) => {
 };
 const MODAL_BACKUP = "BACKUP_WALLET";
 const MODAL_RECEIVE = "MODAL_RECEIVE";
+const MODAL_DELETE = "MODAL_DELETE";
 
 const Dashboard = () => {
   let dollarUSLocale = Intl.NumberFormat("en-US", {
@@ -156,6 +200,7 @@ const Dashboard = () => {
   const { state, dispatch } = useContext(StorageContext);
   const [modalType, $modalType] = React.useState();
   const wallet = state.wallet;
+  console.log("dashboard wallet ", wallet);
   function sendTokenHandler() {}
   function receiveTokenHandler() {
     $modalType(MODAL_RECEIVE);
@@ -164,9 +209,18 @@ const Dashboard = () => {
   function backUpHandler() {
     $modalType(MODAL_BACKUP);
   }
+  function deleteWalletClickHandler() {
+    $modalType(MODAL_DELETE);
+  }
+  function deleteWalletHandler() {
+    console.log("clicked delete");
+    dispatch({ type: ACTION_DELETE_WALLET });
+  }
+
   function closeHandler() {
     $modalType("");
   }
+
   var balanceTotal = 0;
   state.tokenList.map((token, index) => {
     balanceTotal += token.balance * token.priceUSDT;
@@ -174,7 +228,10 @@ const Dashboard = () => {
 
   return (
     <div>
-      <NavbarMenu backupHandler={backUpHandler} />
+      <NavbarMenu
+        backupHandler={backUpHandler}
+        deleteWalletClickHandler={deleteWalletClickHandler}
+      />
       <h1 className="pt-4">Ethereum Blockchain</h1>
       <ListGroup horizontal className="mx-2">
         <ListGroup.Item variant="primary">Address</ListGroup.Item>
@@ -250,6 +307,12 @@ const Dashboard = () => {
           wallet={state.wallet}
           closeHandler={closeHandler}
           completeHandler={closeHandler}
+        />
+      ) : modalType === MODAL_DELETE ? (
+        <DeleteModal
+          wallet={state.wallet}
+          closeHandler={closeHandler}
+          completeHandler={deleteWalletHandler}
         />
       ) : (
         <></>

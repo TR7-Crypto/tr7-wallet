@@ -10,7 +10,8 @@
 ## MIDDLE
 
 - Web3 Library (JavaScript API) for Ethereum: Etherjs
-- Contract ABI:
+- Contract ABI (interact with ethereum smart contract ERC20):
+- Browser save/load
 
 ## BACK-END - API Providers
 

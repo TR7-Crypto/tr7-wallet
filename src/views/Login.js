@@ -29,13 +29,13 @@ const CreateWallet = ({ wallet, closeHandler, completeHandler }) => {
         </Modal.Header>
         <Modal.Body>
           <p className="text-warning">
-            Please backup this 12 mnemonic words in order to restore your wallet
-            later
+            Please backup this seed phrase (12 words in order) to restore your
+            wallet later
           </p>
           <h5 className="text-primary">{mnemonic}</h5>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={completeHandler}>Done</Button>
+          <Button onClick={completeHandler}>Create</Button>
         </Modal.Footer>
       </Modal>
     </>

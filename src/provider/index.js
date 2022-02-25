@@ -1,6 +1,6 @@
 import React, { createContext, useReducer } from "react";
 import { ethers } from "ethers";
-import simpleStorage from "simplestorage.js";
+
 import Network from "./network";
 import CSCArtifact from "../contracts/DappToken.json";
 
@@ -37,7 +37,8 @@ const tokenList = [
   },
 ];
 const initialSate = {
-  lockupStatus: false,
+  loadWallet: loadWalletFromStorage,
+  unlockStatus: false,
   wallet: null,
   wallets: null,
   tokenList: tokenList,
@@ -130,80 +131,76 @@ async function initWeb3Provider(wallet) {
   // // '22627.477437309328201631'
 }
 
+async function loadWalletFromStorage() {
+  let storedWallet = null;
+  const jsonWallet = localStorage.getItem("jsonWallet");
+  console.log("loadedWallet", jsonWallet);
+  if (jsonWallet) {
+    storedWallet = await ethers.Wallet.fromEncryptedJson(
+      jsonWallet,
+      ENCRYPT_PASSWORD
+    );
+  } else {
+    storedWallet = null;
+  }
+  return storedWallet;
+}
+
 function init(initialSate) {
   const newState = { ...initialSate };
   const saved = localStorage.getItem("login");
-  const lockupStatus = JSON.parse(saved) || false;
-  const savedWallet = localStorage.getItem("wallet");
-  const wallet = JSON.parse(savedWallet) || null;
-  newState.lockupStatus = lockupStatus;
-  newState.wallet = wallet;
-  //
-  let jStorageWallet = simpleStorage.get("jStorageWallet");
-  console.log("loaded jStorageWallet", jStorageWallet);
-  initWeb3Provider(wallet);
-
+  const unlockStatus = JSON.parse(saved) || false;
+  newState.unlockStatus = unlockStatus;
   return newState;
 }
-export const ACTION_LOAD_WALLET = "LOAD_WALLET";
+
 export const ACTION_SAVE_NEW_WALLET = "SAVE_NEW_WALLET";
 export const ACTION_IMPORT_WALLET = "IMPORT_WALLET";
 export const ACTION_LOCK_WALLET = "LOCK_WALLET";
-export const ACTION_UNLOCK_WALLETT = "UNLOCK_WALLET";
-function replacer(key, value) {
-  if (typeof value === "function") {
-    return "function";
-  }
-  return value;
-}
+export const ACTION_UNLOCK_WALLET = "UNLOCK_WALLET";
+export const ACTION_LOAD_WALLET = "UNLOCK_WALLET";
+export const ACTION_DELETE_WALLET = "ACTION_DELETE_WALLET";
+
+const ENCRYPT_PASSWORD = "TR7-Wallet";
+
 const StateProvider = ({ children }) => {
-  const walletProvider = ethers.getDefaultProvider(
-    "https://ropsten.infura.io/v3/ed36ba09872245c4913d425cb97d210c"
-  );
   const reducerStorage = (state, action) => {
     const currentState = { ...state };
     switch (action.type) {
       case ACTION_LOAD_WALLET:
         if (action.payload !== undefined) {
           currentState.wallet = action.payload;
-          currentState.lockupStatus = true;
-          const json = JSON.stringify(currentState.lockupStatus);
-          localStorage.setItem("login", json);
-          const wallet = JSON.stringify(currentState.wallet);
-          localStorage.setItem("wallet", wallet);
+          currentState.unlockStatus = true;
         }
+        return currentState;
+
+      case ACTION_DELETE_WALLET:
+        localStorage.clear();
+        currentState.wallet = null;
+        currentState.unlockStatus = false;
         return currentState;
 
       case ACTION_SAVE_NEW_WALLET:
       case ACTION_IMPORT_WALLET:
         if (action.payload !== undefined) {
           currentState.wallet = action.payload;
-          currentState.lockupStatus = true;
-          const json = JSON.stringify(currentState.lockupStatus);
+          currentState.unlockStatus = true;
+          const json = JSON.stringify(currentState.unlockStatus);
           localStorage.setItem("login", json);
-          console.log(" wallet", currentState.wallet);
-          currentState.wallet = currentState.wallet.connect(walletProvider);
-          //
-          const wallet = JSON.stringify(currentState.wallet, [
-            "address",
-            "mnemonic",
-            "privateKey",
-            "publicKey",
-          ]);
-          localStorage.setItem("wallet", wallet);
-          console.log("string wallet", wallet);
-          //
-          simpleStorage.set("jStorageWallet", currentState.wallet);
+          //try wallet.ecrypt
+          currentState.wallet.encrypt(ENCRYPT_PASSWORD).then((json) => {
+            localStorage.setItem("jsonWallet", json);
+          });
         }
 
         return currentState;
 
       case ACTION_LOCK_WALLET:
         currentState.wallet = null;
-        currentState.lockupStatus = false;
+        currentState.unlockStatus = false;
         return currentState;
 
-      case ACTION_UNLOCK_WALLETT:
+      case ACTION_UNLOCK_WALLET:
         const passPhrase = action.payload;
         // TODO: load from device StorageContext
         return currentState;
