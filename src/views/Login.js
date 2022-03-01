@@ -1,10 +1,37 @@
 import React, { useContext } from "react";
-import { Modal, Button, Form, Container } from "react-bootstrap";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import walletIcon from "./../wallet.svg";
 import { ethers } from "ethers";
 import { StorageContext } from "../provider";
 import { ACTION_SAVE_NEW_WALLET, ACTION_IMPORT_WALLET } from "../provider";
+
+const SavingWallet = (props) => {
+  const { percent } = props;
+
+  return (
+    <>
+      <Modal
+        // {...props}
+        size="sm"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        show
+      >
+        <Button variant="primary" disabled>
+          <Spinner
+            as="span"
+            animation="grow"
+            size="sm"
+            role="status"
+            aria-hidden="true"
+          />
+          Saving Wallet...
+        </Button>
+      </Modal>
+    </>
+  );
+};
 
 const CreateWallet = ({ wallet, closeHandler, completeHandler }) => {
   const mnemonic = wallet.mnemonic.phrase;
@@ -76,7 +103,7 @@ const ImportWallet = ({ closeHandler, completeHandler }) => {
           </Modal.Header>
           <Modal.Body>
             <Form.Label htmlFor="inputPassword5" className="text-info">
-              Please input 12 mnemonic words
+              Please input your seed phrase here (12 mnemonic words)
             </Form.Label>
             <Form.Control
               required
@@ -89,8 +116,8 @@ const ImportWallet = ({ closeHandler, completeHandler }) => {
               onChange={(e) => $mnemonic(e.target.value)}
             />
             <Form.Text id="passwordHelpBlock" muted>
-              Your mnemonic words must be exactly 12 words in order as you
-              created your wallet.
+              Your seed phrase must be exactly 12 words in order as you created
+              the wallet.
             </Form.Text>
           </Modal.Body>
           <Modal.Footer>
@@ -104,17 +131,29 @@ const ImportWallet = ({ closeHandler, completeHandler }) => {
 
 const MODAL_CREATE_WALLET = "CREATE_WALLET";
 const MODAL_IMPORT_WALLET = "IMPORT_WALLET";
-
+const MODAL_SAVING_WALLET = "MODAL_SAVING_WALLET";
 const Home = () => {
   const [modalType, $modalType] = React.useState();
   const [tempWallet, $tempWallet] = React.useState();
   const { state, dispatch } = useContext(StorageContext);
 
+  async function savingWallet(wallet) {
+    try {
+      $modalType(MODAL_SAVING_WALLET);
+      console.log("try saving wallet");
+      const respWallet = await state.saveWallet(wallet);
+      $modalType("");
+    } catch (err) {
+      console.log("err", err);
+    }
+  }
+
   function createWalletHandler() {
     $tempWallet(ethers.Wallet.createRandom());
     $modalType(MODAL_CREATE_WALLET);
   }
-  function completeCreateHandler() {
+  async function completeCreateHandler() {
+    await savingWallet(tempWallet);
     dispatch({ type: ACTION_SAVE_NEW_WALLET, payload: tempWallet });
   }
 
@@ -127,6 +166,7 @@ const Home = () => {
   }
   async function completeImportHandler(mnemonic) {
     const wallet = await ethers.Wallet.fromMnemonic(mnemonic);
+    await savingWallet(wallet);
     dispatch({ type: ACTION_IMPORT_WALLET, payload: wallet });
   }
 
@@ -155,7 +195,6 @@ const Home = () => {
           <Button className="m-2">Unlock Wallet</Button>
         </span>
       </p>
-      {/* modal */}
       {modalType === "CREATE_WALLET" ? (
         <CreateWallet
           wallet={tempWallet}
@@ -167,6 +206,8 @@ const Home = () => {
           closeHandler={closeHandler}
           completeHandler={completeImportHandler}
         />
+      ) : modalType === MODAL_SAVING_WALLET ? (
+        <SavingWallet />
       ) : (
         <div />
       )}

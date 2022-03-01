@@ -37,6 +37,8 @@ const tokenList = [
   },
 ];
 const initialSate = {
+  isSaving: false,
+  saveWallet: saveWalletToStorage,
   loadWallet: loadWalletFromStorage,
   unlockStatus: false,
   wallet: null,
@@ -131,6 +133,22 @@ async function initWeb3Provider(wallet) {
   // // '22627.477437309328201631'
 }
 
+async function saveWalletToStorage(wallet) {
+  const json = JSON.stringify(true);
+  localStorage.setItem("login", json);
+  //try wallet.ecrypt
+  //https://docs.ethers.io/v5/concepts/security/#security--pbkdf
+  const encryptWallet = await wallet.encrypt(ENCRYPT_PASSWORD, {
+    scrypt: {
+      // The number must be a power of 2 (default: 131072)
+      N: 65536,
+    },
+  });
+  localStorage.setItem("jsonWallet", encryptWallet);
+  console.log("saved");
+
+  return encryptWallet;
+}
 async function loadWalletFromStorage() {
   let storedWallet = null;
   const jsonWallet = localStorage.getItem("jsonWallet");
@@ -185,12 +203,21 @@ const StateProvider = ({ children }) => {
         if (action.payload !== undefined) {
           currentState.wallet = action.payload;
           currentState.unlockStatus = true;
-          const json = JSON.stringify(currentState.unlockStatus);
-          localStorage.setItem("login", json);
-          //try wallet.ecrypt
-          currentState.wallet.encrypt(ENCRYPT_PASSWORD).then((json) => {
-            localStorage.setItem("jsonWallet", json);
-          });
+          // const json = JSON.stringify(currentState.unlockStatus);
+          // localStorage.setItem("login", json);
+          // //try wallet.ecrypt
+          // //https://docs.ethers.io/v5/concepts/security/#security--pbkdf
+          // currentState.wallet
+          //   .encrypt(ENCRYPT_PASSWORD, {
+          //     scrypt: {
+          //       // The number must be a power of 2 (default: 131072)
+          //       N: 65536,
+          //     },
+          //   })
+          //   .then((json) => {
+          //     localStorage.setItem("jsonWallet", json);
+          //     console.log("saved");
+          //   });
         }
 
         return currentState;

@@ -86,7 +86,7 @@ const ReceiveModal = ({ wallet, closeHandler, completeHandler }) => {
       <Modal.Body>
         <p className="text-warning">
           This is an Ethereum ERC-20 address. Be careful, just send your ERC-20
-          tokens or you will lost your assets!!!
+          tokens to this address or you could lost your assets!!!
         </p>
         <ListGroup horizontal className="my-2 ">
           <ListGroup.Item variant="primary">Addres</ListGroup.Item>
