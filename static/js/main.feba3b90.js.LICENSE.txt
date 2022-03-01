@@ -10,8 +10,6 @@ object-assign
   http://jedwatson.github.io/classnames
 */
 
-/*! simpleStorage v0.2.1, Unlicense 2016. https://github.com/andris9/simpleStorage */
-
 /**
  * React Router v6.2.1
  *
