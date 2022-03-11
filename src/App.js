@@ -7,7 +7,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Login from "./views/Login";
 import Dashboard from "./views/Dashboard";
 
-import { ACTION_LOAD_WALLET, StorageContext } from "./provider";
+import { ACTION_LOAD_WALLET, StateContext } from "./provider";
 
 const HomePage = ({ unlockStatus }) => {
   return (
@@ -31,7 +31,7 @@ const LoadingScreen = () => {
 };
 
 function App() {
-  const { state, dispatch } = useContext(StorageContext);
+  const { state, dispatch } = useContext(StateContext);
   const [isLoading, $isLoading] = useState(true);
   console.log("unlockStatus", state.unlockStatus);
   console.log("isLoading", isLoading);
@@ -40,25 +40,37 @@ function App() {
       $isLoading(true);
       //load wallet
       try {
-        console.log("try loading wallet");
+        console.log("try loading wallet ");
         const respWallet = await state.loadWallet();
-        dispatch({ type: ACTION_LOAD_WALLET, payload: respWallet });
+        const provider = await state.initWeb3Provider(state.network);
+        const respTokenList = await state.fetchBalanceAndPrices(
+          provider,
+          respWallet,
+          state.tokenList
+        );
+        dispatch({
+          type: ACTION_LOAD_WALLET,
+          payload: { respWallet, provider, respTokenList },
+        });
       } catch (e) {
-        console.log("load data err:", e);
+        console.log("load data err: ", e);
       }
 
       $isLoading(false);
     };
-    loadWallet();
+    console.log("state.wallet", state.wallet);
+    if (!state.wallet) {
+      loadWallet();
+    }
   }, []);
 
   return (
     <div className="App">
       <Router>
-        <div className="App-header  ">
-          {isLoading == true ? (
+        <div className="App-header ">
+          {isLoading === true ? (
             <LoadingScreen />
-          ) : state && state.unlockStatus && state.wallet ? (
+          ) : state && state.unlockStatus ? (
             <Dashboard />
           ) : (
             <Login />

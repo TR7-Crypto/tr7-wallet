@@ -3,10 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
 import { Container, Form, Table, ListGroup, Modal } from "react-bootstrap";
-import { StorageContext } from "../provider";
+import { StateContext } from "../provider";
 import walletIcon from "./../wallet.svg";
 import "./Dashboard.css";
-import { ACTION_DELETE_WALLET, ACTION_LOCK_WALLET } from "../provider";
+import {
+  ACTION_DELETE_WALLET,
+  ACTION_LOCK_WALLET,
+  ACTION_CHANGE_NETWORK,
+} from "../provider";
 
 const BackupModal = ({ wallet, closeHandler, completeHandler }) => {
   console.log("internal wallet", wallet);
@@ -123,7 +127,7 @@ const DeleteModal = ({ wallet, closeHandler, completeHandler }) => {
           {`BE CAUTIOUS!!!
           This process will clear all wallet data on this device.
           You would not be able recover your wallet without seed phrase/ private key.
-          PLEASE backup the seed phrase/ private key before doing this.`
+          PLEASE backup the seed phrase/ private key before proceeding.`
             .split("\n")
             .map((i, key) => {
               return <div key={key}>{i}</div>;
@@ -139,15 +143,19 @@ const DeleteModal = ({ wallet, closeHandler, completeHandler }) => {
   );
 };
 // Navbar for the page
+const NetworkSelectList = ["Mainnet", "Ropsten", "Kovan", "Rinkeby", "Goerli"];
 const NavbarMenu = ({ backupHandler, deleteWalletClickHandler }) => {
-  const { state, dispatch } = useContext(StorageContext);
+  const { state, dispatch } = useContext(StateContext);
 
   function lockWalletClickHandler() {
     dispatch({ type: ACTION_LOCK_WALLET });
   }
+  function networkChangeHandler(event) {
+    dispatch({ type: ACTION_CHANGE_NETWORK, payload: event.target.value });
+  }
 
   return (
-    <>
+    <Container>
       <Navbar bg="primary" variant="dark">
         <Container>
           <Navbar.Brand href="/">
@@ -160,31 +168,43 @@ const NavbarMenu = ({ backupHandler, deleteWalletClickHandler }) => {
             />{" "}
             TR7 Wallet
           </Navbar.Brand>
-
+          <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse className="justify-content-end">
-            <Form.Select aria-label="Default select example" defaultValue={"2"}>
-              <option value="1">Mainnet</option>
-              <option value="2">Ropsten</option>
+            <Form.Select
+              aria-label="Default select example"
+              defaultValue={NetworkSelectList[1]}
+              onChange={networkChangeHandler}
+            >
+              {NetworkSelectList.map((item, index) => {
+                return (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                );
+              })}
             </Form.Select>
+            <Button
+              className="mx-1 bg-dark text-nowrap"
+              onClick={backupHandler}
+            >
+              Backup
+            </Button>
             <Button
               onClick={lockWalletClickHandler}
               className="mx-1 bg-dark text-nowrap"
             >
-              Lock Wallet
-            </Button>
-            <Button className="bg-dark" onClick={backupHandler}>
-              Backup
+              Lock
             </Button>
             <Button
               onClick={deleteWalletClickHandler}
               className="mx-1 bg-dark text-nowrap"
             >
-              Delete Wallet
+              Delete
             </Button>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-    </>
+    </Container>
   );
 };
 const MODAL_BACKUP = "BACKUP_WALLET";
@@ -197,7 +217,9 @@ const Dashboard = () => {
     currency: "USD",
     maximumFractionDigits: 6,
   });
-  const { state, dispatch } = useContext(StorageContext);
+  let balanceFormat = Intl.NumberFormat("en-US", { maximumFractionDigits: 6 });
+
+  const { state, dispatch } = useContext(StateContext);
   const [modalType, $modalType] = React.useState();
   const wallet = state.wallet;
   console.log("dashboard wallet ", wallet);
@@ -213,7 +235,6 @@ const Dashboard = () => {
     $modalType(MODAL_DELETE);
   }
   function deleteWalletHandler() {
-    console.log("clicked delete");
     dispatch({ type: ACTION_DELETE_WALLET });
   }
 
@@ -270,7 +291,7 @@ const Dashboard = () => {
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{token.symbol}</td>
-                  <td>{token.balance}</td>
+                  <td>{balanceFormat.format(token.balance)}</td>
                   <td>{dollarUSLocale.format(token.priceUSDT)}</td>
                   <td>
                     {dollarUSLocale.format(token.balance * token.priceUSDT)}

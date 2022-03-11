@@ -1,136 +1,170 @@
 import React, { createContext, useReducer } from "react";
 import { ethers } from "ethers";
 
-import Network from "./network";
-import CSCArtifact from "../contracts/DappToken.json";
+import network from "./network";
+import abis from "../contracts/abis.js";
 
-const tokenList = [
-  {
-    name: "Ethereum",
-    symbol: "ETH",
-    icon: "",
-    contractAddress: "",
-    decimals: 18,
-    description: `Ethereum is the community-run technology powering the cryptocurrency ether (ETH)
+const tokenList = {
+  Mainnet: [
+    {
+      name: "Ethereum",
+      symbol: "ETH",
+      icon: "",
+      contractAddress: "",
+      decimals: 18,
+      description: `Ethereum is the community-run technology powering the cryptocurrency ether (ETH)
        and thousands of decentralized applications.`,
-    url: "https://ethereum.org/",
-    balance: 100000.01,
-    priceUSDT: 2937.86,
-  },
-  {
-    symbol: "UNI",
-    icon: "",
-    balance: 2.01,
-    priceUSDT: 10.79,
-  },
-  {
-    symbol: "LINK",
-    icon: "",
-    balance: 10.01,
-    priceUSDT: 16.06,
-  },
-  {
-    symbol: "SHIB",
-    icon: "",
-    balance: 100,
-    priceUSDT: 0.00002853,
-  },
-];
+      url: "https://ethereum.org/",
+      balance: "",
+      priceUSDT: 2937.86,
+    },
+    {
+      name: "Uniswap",
+      symbol: "UNI",
+      icon: "",
+      contractAddress: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+      decimals: 18,
+      description: `UNISWAP PROTOCOL
+      Swap, earn, and build on the leading decentralized crypto trading protocol.`,
+      url: "https://uniswap.org/",
+      balance: "",
+      priceUSDT: 10.79,
+    },
+    {
+      name: "ChainLink",
+      symbol: "LINK",
+      icon: "",
+      contractAddress: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+      decimals: 18,
+      description: `Securely connect smart contracts with off-chain data and services`,
+      url: "https://chain.link/",
+      balance: "",
+      priceUSDT: 16.06,
+    },
+    {
+      name: "SHIBA Inu",
+      symbol: "SHIB",
+      icon: "",
+      contractAddress: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE",
+      decimals: 18,
+      description: `A Decentralized Meme Token that Evolved into a Vibrant Ecosystem`,
+      url: "https://shibatoken.com/",
+      balance: "",
+      priceUSDT: 0.00002853,
+    },
+  ],
+  Ropsten: [
+    {
+      name: "Ethereum",
+      symbol: "ETH",
+      icon: "",
+      contractAddress: "",
+      decimals: 18,
+      description: `Ethereum is the community-run technology powering the cryptocurrency ether (ETH)
+       and thousands of decentralized applications.`,
+      url: "https://ethereum.org/",
+      balance: "",
+      priceUSDT: 2937.86,
+    },
+    {
+      name: "CSC Token",
+      symbol: "CSC",
+      icon: "",
+      contractAddress: "0xa06884A5651ceca0C013FdC4bD3C4BF47Cdf097e",
+      decimals: 18,
+      description: `Just an erc20 token for testing purpose`,
+      url: "https://tr7-crypto.github.io/CSC-Token-ICO/",
+      balance: "",
+      priceUSDT: 2.86,
+    },
+    {
+      name: "SHIBA Inu",
+      symbol: "SHIB",
+      icon: "",
+      contractAddress: "0x34e12283f70b332a14E91a00A99396D41488b23f",
+      decimals: 18,
+      description: `A Decentralized Meme Token that Evolved into a Vibrant Ecosystem`,
+      url: "https://shibatoken.com/",
+      balance: "",
+      priceUSDT: 0.00002853,
+    },
+  ],
+};
 const initialSate = {
   isSaving: false,
   saveWallet: saveWalletToStorage,
   loadWallet: loadWalletFromStorage,
   unlockStatus: false,
+  tokenList: tokenList.Ropsten,
+  network: network.Ropsten,
+  provider: "",
+  signer: "",
   wallet: null,
   wallets: null,
-  tokenList: tokenList,
-  network: "ropsten",
+  initWeb3Provider,
+  fetchBalanceAndPrices,
 };
 
-export const StorageContext = createContext(initialSate);
+export const StateContext = createContext(initialSate);
 
-const { Provider } = StorageContext;
+const { Provider } = StateContext;
+const erc20Abi = [
+  // Some details about the token
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
 
-async function initWeb3Provider(wallet) {
-  //init etherjs
-  // Connect web3
-  // const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const provider = new ethers.providers.JsonRpcProvider(
-    `https://ropsten.infura.io/v3/ed36ba09872245c4913d425cb97d210c`
-  );
-  // const provider = new ethers.providers.JsonRpcProvider(
-  //   `https://mainnet.infura.io/v3/ed36ba09872245c4913d425cb97d210c`
-  // );
+  // Get the account balance
+  "function balanceOf(address) view returns (uint)",
 
-  // const accounts = await provider.listAccounts();
-  // console.log(accounts[0]);
-  // dev account
+  // Send some of your tokens to someone else
+  "function transfer(address to, uint amount)",
+
+  // An event triggered whenever anyone transfers to someone else
+  "event Transfer(address indexed from, address indexed to, uint amount)",
+];
+
+async function fetchBalanceAndPrices(provider, wallet, tokenList) {
+  // console.log(`provider: ${provider}`);
+  // console.log(`Address: ${wallet.address}`);
+  //dev acc
   const address = "0x09858980B3B28a835D765C6cB3B1EE418070368C";
+  // const address = wallet.address;
   const balance = await provider.getBalance(address);
-  console.log(
-    `The ${address} balance: ${ethers.utils.formatEther(balance).toString()}`
-  );
-  const signer = provider.getSigner();
-  console.log(`signer ${signer._address}`);
+  console.log(`ETH: ${ethers.utils.formatEther(balance).toString()}`);
+  console.log("tokenList", tokenList);
+  tokenList.map(async (token, index) => {
+    if (token.symbol === "ETH") {
+      tokenList[index].balance = ethers.utils.formatEther(balance);
+      return;
+    }
+    const contractAddress = token.contractAddress;
+    const contractAbi = new ethers.Contract(
+      contractAddress,
+      abis.erc20Artifact.abi, //erc20Abi,
+      provider
+    );
+    const contractName = await contractAbi.name();
+    // Get the balance of an address
+    var tokenBalance = await contractAbi.balanceOf(address);
+    console.log(`${contractName}: ${tokenBalance}`);
+    tokenList[index].balance = tokenBalance.toNumber();
+  });
+  // console.log(tokenList);
 
-  //CSC contract addr
-  const contractAddress = "0xa06884A5651ceca0C013FdC4bD3C4BF47Cdf097e";
-  // const contractAddress = "0x6B3595068778DD592e39A122f4f5a5cF09C90fE2";
+  return tokenList;
+}
 
-  const cscContract = new ethers.Contract(
-    contractAddress,
-    CSCArtifact.abi,
-    provider
-  );
-  const contractName = await cscContract.name();
-  console.log(`Contract name is ${contractName}`);
-  // Get the balance of an address
-  var cscBalance = await cscContract.balanceOf(address);
-  console.log(`balance CSC ${cscBalance}`);
+async function initWeb3Provider(initNetwork) {
+  console.log("network rpc", initNetwork.rpc);
+  const web3Network = initNetwork;
 
+  const rpc = web3Network.rpc;
+  const provider = new ethers.providers.JsonRpcProvider(rpc);
   const network = await provider.getNetwork();
   const chainId = network.chainId;
-  console.log(`network: ${network}, chainId: ${chainId}`);
-  // You can also use an ENS name for the contract address
+  console.log(`network: ${network.name}, chainId: ${chainId}`);
 
-  // const daiAddress = "dai.tokens.ethers.eth";
-
-  // // The ERC-20 Contract ABI, which is a common contract interface
-  // // for tokens (this is the Human-Readable ABI format)
-  // const daiAbi = [
-  //   // Some details about the token
-  //   "function name() view returns (string)",
-  //   "function symbol() view returns (string)",
-
-  //   // Get the account balance
-  //   "function balanceOf(address) view returns (uint)",
-
-  //   // Send some of your tokens to someone else
-  //   "function transfer(address to, uint amount)",
-
-  //   // An event triggered whenever anyone transfers to someone else
-  //   "event Transfer(address indexed from, address indexed to, uint amount)",
-  // ];
-
-  // // The Contract object
-  // const daiContract = new ethers.Contract(daiAddress, daiAbi, provider);
-  // // Get the ERC-20 token name
-  // console.log(await daiContract.name());
-  // // 'Dai Stablecoin'
-
-  // // Get the ERC-20 token symbol (for tickers and UIs)
-  // console.log(await daiContract.symbol());
-  // // 'DAI'
-
-  // // Get the balance of an address
-  // balance = await daiContract.balanceOf("ricmoo.firefly.eth");
-  // console.log(`balance dai ${balance}`);
-  // // { BigNumber: "22627477437309328201631" }
-
-  // // Format the DAI for displaying to the user
-  // ethers.utils.formatUnits(balance, 18);
-  // console.log(`balance dai ${balance}`);
-  // // '22627.477437309328201631'
+  return provider;
 }
 
 async function saveWalletToStorage(wallet) {
@@ -161,23 +195,26 @@ async function loadWalletFromStorage() {
   } else {
     storedWallet = null;
   }
+  // await initWeb3Provider(initialSate);
+
   return storedWallet;
 }
 
 function init(initialSate) {
   const newState = { ...initialSate };
   const saved = localStorage.getItem("login");
-  const unlockStatus = JSON.parse(saved) || false;
-  newState.unlockStatus = unlockStatus;
+  newState.unlockStatus = JSON.parse(saved);
+  // initWeb3Provider(initialSate);
   return newState;
 }
 
-export const ACTION_SAVE_NEW_WALLET = "SAVE_NEW_WALLET";
-export const ACTION_IMPORT_WALLET = "IMPORT_WALLET";
-export const ACTION_LOCK_WALLET = "LOCK_WALLET";
-export const ACTION_UNLOCK_WALLET = "UNLOCK_WALLET";
-export const ACTION_LOAD_WALLET = "UNLOCK_WALLET";
-export const ACTION_DELETE_WALLET = "ACTION_DELETE_WALLET";
+export const ACTION_SAVE_NEW_WALLET = Symbol("ACTION_SAVE_NEW_WALLET");
+export const ACTION_IMPORT_WALLET = Symbol("ACTION_IMPORT_WALLET");
+export const ACTION_LOCK_WALLET = Symbol("ACTION_LOCK_WALLET");
+export const ACTION_UNLOCK_WALLET = Symbol("ACTION_UNLOCK_WALLET");
+export const ACTION_LOAD_WALLET = Symbol("ACTION_LOAD_WALLET");
+export const ACTION_DELETE_WALLET = Symbol("ACTION_DELETE_WALLET");
+export const ACTION_CHANGE_NETWORK = Symbol("ACTION_CHANGE_NETWORK");
 
 const ENCRYPT_PASSWORD = "TR7-Wallet";
 
@@ -185,9 +222,19 @@ const StateProvider = ({ children }) => {
   const reducerStorage = (state, action) => {
     const currentState = { ...state };
     switch (action.type) {
+      case ACTION_CHANGE_NETWORK:
+        currentState.network = network[action.payload];
+        currentState.tokenList =
+          tokenList[action.payload] || tokenList["Ropsten"];
+        //initWeb3Provider(currentState);
+        //re-load all here
+        return currentState;
+
       case ACTION_LOAD_WALLET:
         if (action.payload !== undefined) {
-          currentState.wallet = action.payload;
+          currentState.wallet = action.payload.respWallet;
+          currentState.provider = action.payload.provider;
+          currentState.tokenList = action.payload.respTokenList;
           currentState.unlockStatus = true;
         }
         return currentState;
@@ -203,21 +250,6 @@ const StateProvider = ({ children }) => {
         if (action.payload !== undefined) {
           currentState.wallet = action.payload;
           currentState.unlockStatus = true;
-          // const json = JSON.stringify(currentState.unlockStatus);
-          // localStorage.setItem("login", json);
-          // //try wallet.ecrypt
-          // //https://docs.ethers.io/v5/concepts/security/#security--pbkdf
-          // currentState.wallet
-          //   .encrypt(ENCRYPT_PASSWORD, {
-          //     scrypt: {
-          //       // The number must be a power of 2 (default: 131072)
-          //       N: 65536,
-          //     },
-          //   })
-          //   .then((json) => {
-          //     localStorage.setItem("jsonWallet", json);
-          //     console.log("saved");
-          //   });
         }
 
         return currentState;
@@ -228,8 +260,14 @@ const StateProvider = ({ children }) => {
         return currentState;
 
       case ACTION_UNLOCK_WALLET:
-        const passPhrase = action.payload;
-        // TODO: load from device StorageContext
+        // const passPhrase = action.payload;
+        // TODO: load from device storage
+        if (action.payload !== undefined) {
+          currentState.wallet = action.payload;
+          currentState.unlockStatus = true;
+        }
+        currentState.wallet = action.payload; //loadWalletFromStorage();
+        currentState.unlockStatus = true;
         return currentState;
 
       default:
@@ -237,8 +275,30 @@ const StateProvider = ({ children }) => {
     }
   };
 
+  const isPromise = (obj) => {
+    return (
+      !!obj &&
+      (typeof obj === "object" || typeof obj === "function") &&
+      typeof obj.then === "function"
+    );
+  };
+  const middleware = (dispatch) => {
+    return (action) => {
+      if (isPromise(action.payload)) {
+        action.payload.then((v) => {
+          dispatch({ type: action.type, payload: v });
+        });
+      } else {
+        dispatch(action);
+      }
+    };
+  };
   const [state, dispatch] = useReducer(reducerStorage, initialSate, init);
 
-  return <Provider value={{ state, dispatch }}>{children}</Provider>;
+  return (
+    <Provider value={{ state, dispatch: middleware(dispatch) }}>
+      {children}
+    </Provider>
+  );
 };
 export default StateProvider;

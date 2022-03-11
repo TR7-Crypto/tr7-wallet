@@ -3,22 +3,26 @@ import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import walletIcon from "./../wallet.svg";
 import { ethers } from "ethers";
-import { StorageContext } from "../provider";
-import { ACTION_SAVE_NEW_WALLET, ACTION_IMPORT_WALLET } from "../provider";
+import { StateContext } from "../provider";
+import {
+  ACTION_SAVE_NEW_WALLET,
+  ACTION_IMPORT_WALLET,
+  ACTION_UNLOCK_WALLET,
+} from "../provider";
 
 const SavingWallet = (props) => {
-  const { percent } = props;
+  const { percent, actionText } = props;
 
   return (
     <>
       <Modal
-        // {...props}
+        {...props}
         size="sm"
         aria-labelledby="contained-modal-title-vcenter"
         centered
         show
       >
-        <Button variant="primary" disabled>
+        <Button variant="primary" disabled size="sm">
           <Spinner
             as="span"
             animation="grow"
@@ -26,7 +30,7 @@ const SavingWallet = (props) => {
             role="status"
             aria-hidden="true"
           />
-          Saving Wallet...
+          {actionText}
         </Button>
       </Modal>
     </>
@@ -134,15 +138,18 @@ const MODAL_IMPORT_WALLET = "IMPORT_WALLET";
 const MODAL_SAVING_WALLET = "MODAL_SAVING_WALLET";
 const Home = () => {
   const [modalType, $modalType] = React.useState();
+  const [actionText, $actionText] = React.useState("");
   const [tempWallet, $tempWallet] = React.useState();
-  const { state, dispatch } = useContext(StorageContext);
+  const { state, dispatch } = useContext(StateContext);
 
   async function savingWallet(wallet) {
     try {
       $modalType(MODAL_SAVING_WALLET);
+      $actionText("saving wallet...");
       console.log("try saving wallet");
       const respWallet = await state.saveWallet(wallet);
       $modalType("");
+      return wallet;
     } catch (err) {
       console.log("err", err);
     }
@@ -153,8 +160,11 @@ const Home = () => {
     $modalType(MODAL_CREATE_WALLET);
   }
   async function completeCreateHandler() {
-    await savingWallet(tempWallet);
-    dispatch({ type: ACTION_SAVE_NEW_WALLET, payload: tempWallet });
+    // await savingWallet(tempWallet);
+    dispatch({
+      type: ACTION_SAVE_NEW_WALLET,
+      payload: savingWallet(tempWallet),
+    });
   }
 
   function importWalletHandler() {
@@ -168,6 +178,26 @@ const Home = () => {
     const wallet = await ethers.Wallet.fromMnemonic(mnemonic);
     await savingWallet(wallet);
     dispatch({ type: ACTION_IMPORT_WALLET, payload: wallet });
+  }
+
+  async function unlockingWallet() {
+    try {
+      $modalType(MODAL_SAVING_WALLET);
+      $actionText("unlocking wallet...");
+      console.log("try unlocking wallet");
+      const respWallet = await state.loadWallet();
+      $modalType("");
+      return respWallet;
+    } catch (err) {
+      console.log("err", err);
+    }
+  }
+  function unlockWalletHandler() {
+    console.log("dispatched unlock wallet");
+    dispatch({
+      type: ACTION_UNLOCK_WALLET,
+      payload: unlockingWallet(tempWallet),
+    });
   }
 
   // const wallet = ethers.Wallet.fromMnemonic(mnemonic);
@@ -192,7 +222,9 @@ const Home = () => {
           <Button className="m-2" onClick={importWalletHandler}>
             Import Wallet
           </Button>
-          <Button className="m-2">Unlock Wallet</Button>
+          <Button className="m-2" onClick={unlockWalletHandler}>
+            Unlock Wallet
+          </Button>
         </span>
       </p>
       {modalType === "CREATE_WALLET" ? (
@@ -207,7 +239,7 @@ const Home = () => {
           completeHandler={completeImportHandler}
         />
       ) : modalType === MODAL_SAVING_WALLET ? (
-        <SavingWallet />
+        <SavingWallet actionText={actionText} />
       ) : (
         <div />
       )}
