@@ -222,7 +222,7 @@ const Dashboard = () => {
   const { state, dispatch } = useContext(StateContext);
   const [modalType, $modalType] = React.useState();
   const wallet = state.wallet;
-  console.log("dashboard wallet ", wallet);
+  // console.log("dashboard wallet  ", wallet);
   function sendTokenHandler() {}
   function receiveTokenHandler() {
     $modalType(MODAL_RECEIVE);

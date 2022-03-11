@@ -40,7 +40,6 @@ function App() {
       $isLoading(true);
       //load wallet
       try {
-        console.log("try loading wallet ");
         const respWallet = await state.loadWallet();
         const provider = await state.initWeb3Provider(state.network);
         const respTokenList = await state.fetchBalanceAndPrices(
@@ -48,6 +47,8 @@ function App() {
           respWallet,
           state.tokenList
         );
+        console.log("completed loading");
+        console.log("tokenlist", respTokenList);
         dispatch({
           type: ACTION_LOAD_WALLET,
           payload: { respWallet, provider, respTokenList },
@@ -58,7 +59,7 @@ function App() {
 
       $isLoading(false);
     };
-    console.log("state.wallet", state.wallet);
+    // console.log("state.wallet", state.wallet);
     if (!state.wallet) {
       loadWallet();
     }
@@ -70,7 +71,7 @@ function App() {
         <div className="App-header ">
           {isLoading === true ? (
             <LoadingScreen />
-          ) : state && state.unlockStatus ? (
+          ) : state && state.unlockStatus && state.wallet ? (
             <Dashboard />
           ) : (
             <Login />

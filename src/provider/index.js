@@ -88,6 +88,18 @@ const tokenList = {
       balance: "",
       priceUSDT: 0.00002853,
     },
+    {
+      name: "DAI",
+      symbol: "DAI",
+      icon: "",
+      contractAddress: "0xaD6D458402F60fD3Bd25163575031ACDce07538D",
+      decimals: 18,
+      description: `A better, smarter currency
+      Dai can be used by anyone, anywhere, anytime.`,
+      url: "https://shibatoken.com/",
+      balance: "",
+      priceUSDT: 0.9997,
+    },
   ],
 };
 const initialSate = {
@@ -123,34 +135,79 @@ const erc20Abi = [
   "event Transfer(address indexed from, address indexed to, uint amount)",
 ];
 
+async function fetchExchangeRates() {
+  /* Example in Node.js */
+  const axios = require("axios");
+
+  let response = null;
+  new Promise(async (resolve, reject) => {
+    try {
+      response = await axios.get(
+        "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest",
+        {
+          headers: {
+            "X-CMC_PRO_API_KEY": "ae45a6c4-87d9-42e3-8188-46e0c9b4651b",
+          },
+        }
+      );
+    } catch (ex) {
+      response = null;
+      // error
+      console.log(ex);
+      reject(ex);
+    }
+    if (response) {
+      // success
+      const json = response.data;
+      console.log(json);
+      resolve(json);
+    }
+  });
+
+  return response;
+}
 async function fetchBalanceAndPrices(provider, wallet, tokenList) {
+  console.log("enter fetch balance");
   // console.log(`provider: ${provider}`);
   // console.log(`Address: ${wallet.address}`);
   //dev acc
   const address = "0x09858980B3B28a835D765C6cB3B1EE418070368C";
   // const address = wallet.address;
   const balance = await provider.getBalance(address);
-  console.log(`ETH: ${ethers.utils.formatEther(balance).toString()}`);
-  console.log("tokenList", tokenList);
-  tokenList.map(async (token, index) => {
-    if (token.symbol === "ETH") {
-      tokenList[index].balance = ethers.utils.formatEther(balance);
-      return;
-    }
-    const contractAddress = token.contractAddress;
-    const contractAbi = new ethers.Contract(
-      contractAddress,
-      abis.erc20Artifact.abi, //erc20Abi,
-      provider
+  console.log("got eth balance");
+  // console.log(`ETH: ${ethers.utils.formatEther(balance).toString()}`);
+  // console.log("tokenList", tokenList);
+  const getTokenBalance = async () => {
+    return Promise.all(
+      tokenList.map(async (token, index) => {
+        if (token.symbol === "ETH") {
+          tokenList[index].balance = ethers.utils.formatEther(balance);
+          return;
+        }
+        const contractAddress = token.contractAddress;
+        const contractAbi = new ethers.Contract(
+          contractAddress,
+          abis.erc20Artifact.abi, //erc20Abi,
+          provider
+        );
+        const contractName = await contractAbi.name();
+        // Get the balance of an address
+        var tokenBalance = await contractAbi.balanceOf(address);
+        console.log(`${contractName}: ${tokenBalance}`);
+        if (token.symbol === "DAI") {
+          tokenList[index].balance = ethers.utils.formatEther(tokenBalance);
+        } else {
+          tokenList[index].balance = tokenBalance.toNumber();
+        }
+      })
     );
-    const contractName = await contractAbi.name();
-    // Get the balance of an address
-    var tokenBalance = await contractAbi.balanceOf(address);
-    console.log(`${contractName}: ${tokenBalance}`);
-    tokenList[index].balance = tokenBalance.toNumber();
-  });
-  // console.log(tokenList);
+  };
+  await getTokenBalance();
 
+  // console.log(tokenList);
+  // fetch prices
+  // const jsonExchangeRate = await fetchExchangeRates();
+  console.log("return from get balance");
   return tokenList;
 }
 
@@ -234,6 +291,7 @@ const StateProvider = ({ children }) => {
         if (action.payload !== undefined) {
           currentState.wallet = action.payload.respWallet;
           currentState.provider = action.payload.provider;
+          console.log("resp token list", action.payload.respTokenList);
           currentState.tokenList = action.payload.respTokenList;
           currentState.unlockStatus = true;
         }
